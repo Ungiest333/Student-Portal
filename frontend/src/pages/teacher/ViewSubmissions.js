@@ -6,8 +6,9 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { FiEye, FiCheck, FiFile, FiLink, FiDownload } from 'react-icons/fi';
+import { API_BASE_URL, buildAssetUrl } from '../../config';
 
-const API = 'http://localhost:5000/api';
+const API = API_BASE_URL;
 
 const ViewSubmissions = () => {
   const [assignments, setAssignments] = useState([]);
@@ -138,7 +139,7 @@ const ViewSubmissions = () => {
                   {sub.files?.length > 0 && (
                     <div style={{ marginBottom: '10px' }}>
                       {sub.files.map((file, fi) => (
-                        <a key={fi} href={`http://localhost:5000/${file.filepath}`}
+                        <a key={fi} href={buildAssetUrl(file.filepath)}
                           target="_blank" rel="noreferrer"
                           className="file-item" style={{ textDecoration: 'none', color: 'inherit', display: 'flex' }}>
                           <div className="file-info">

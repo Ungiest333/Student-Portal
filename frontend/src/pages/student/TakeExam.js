@@ -6,8 +6,9 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { FiClock, FiCheckCircle, FiAlertCircle, FiPlay, FiSend, FiUploadCloud, FiFile, FiX } from 'react-icons/fi';
+import { API_BASE_URL, buildAssetUrl } from '../../config';
 
-const API = 'http://localhost:5000/api';
+const API = API_BASE_URL;
 
 const TakeExam = () => {
   const [exams, setExams] = useState([]);
@@ -186,12 +187,12 @@ const TakeExam = () => {
                 </p>
 
                 {activeExam.examImage && (
-                  <a className="btn btn-outline btn-sm" href={`http://localhost:5000${activeExam.examImage}`} target="_blank" rel="noreferrer" style={{ marginRight: '8px', marginBottom: '15px' }}>
+                  <a className="btn btn-outline btn-sm" href={buildAssetUrl(activeExam.examImage)} target="_blank" rel="noreferrer" style={{ marginRight: '8px', marginBottom: '15px' }}>
                     View Exam Image
                   </a>
                 )}
                 {activeExam.pdfFile && (
-                  <a className="btn btn-outline btn-sm" href={`http://localhost:5000${activeExam.pdfFile}`} target="_blank" rel="noreferrer" style={{ marginBottom: '15px' }}>
+                  <a className="btn btn-outline btn-sm" href={buildAssetUrl(activeExam.pdfFile)} target="_blank" rel="noreferrer" style={{ marginBottom: '15px' }}>
                     View Exam PDF
                   </a>
                 )}

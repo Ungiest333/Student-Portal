@@ -9,10 +9,11 @@ import { Chart as ChartJS, ArcElement, CategoryScale, LinearScale, BarElement, T
 import { Doughnut, Bar } from 'react-chartjs-2';
 import CountUp from 'react-countup';
 import { FiFileText, FiCheckCircle, FiAward, FiClock, FiTrendingUp } from 'react-icons/fi';
+import { API_BASE_URL } from '../../config';
 
 ChartJS.register(ArcElement, CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
-const API = 'http://localhost:5000/api';
+const API = API_BASE_URL;
 
 const StudentDashboard = () => {
   const { user } = useAuth();

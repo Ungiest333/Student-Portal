@@ -13,8 +13,9 @@ import axios from 'axios';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL } from '../config';
 
-const API = 'http://localhost:5000/api';
+const API = API_BASE_URL;
 
 const Toggle = ({ checked, onChange, label }) => (
   <button

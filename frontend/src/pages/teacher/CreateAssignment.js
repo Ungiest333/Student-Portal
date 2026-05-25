@@ -5,8 +5,9 @@ import Navbar from '../../components/Navbar';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { FiUploadCloud, FiFile, FiX, FiSend } from 'react-icons/fi';
+import { API_BASE_URL } from '../../config';
 
-const API = 'http://localhost:5000/api';
+const API = API_BASE_URL;
 
 const CreateAssignment = () => {
   const [formData, setFormData] = useState({

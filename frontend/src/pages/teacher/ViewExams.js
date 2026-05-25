@@ -17,9 +17,9 @@ import {
   FiImage,
   FiTrash2
 } from 'react-icons/fi';
+import { API_BASE_URL, buildAssetUrl } from '../../config';
 
-const API = 'http://localhost:5000/api';
-const BASE_URL = 'http://localhost:5000';
+const API = API_BASE_URL;
 
 const ViewExams = () => {
   const [exams, setExams] = useState([]);
@@ -104,10 +104,7 @@ const ViewExams = () => {
     return new Date(exam.startTime) <= now && new Date(exam.endTime) >= now;
   };
 
-  const fileUrl = (path) => {
-    if (!path) return '';
-    return path.startsWith('http') ? path : `${BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`;
-  };
+  const fileUrl = (path) => buildAssetUrl(path);
 
   const getMcqAnswerRows = (result) => {
     const questions = result.exam?.questions || [];

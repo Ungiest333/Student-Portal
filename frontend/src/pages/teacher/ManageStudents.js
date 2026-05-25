@@ -6,8 +6,9 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 import axios from 'axios';
 import { FiUsers, FiMail, FiPhone, FiBookOpen, FiSearch } from 'react-icons/fi';
 import CountUp from 'react-countup';
+import { API_BASE_URL } from '../../config';
 
-const API = 'http://localhost:5000/api';
+const API = API_BASE_URL;
 
 const ManageStudents = () => {
   const [students, setStudents] = useState([]);

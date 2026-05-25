@@ -5,8 +5,9 @@ import Navbar from '../../components/Navbar';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import axios from 'axios';
 import { FiFile, FiLink, FiCheckCircle, FiClock, FiAlertCircle } from 'react-icons/fi';
+import { API_BASE_URL } from '../../config';
 
-const API = 'http://localhost:5000/api';
+const API = API_BASE_URL;
 
 const MySubmissions = () => {
   const [submissions, setSubmissions] = useState([]);

@@ -5,18 +5,18 @@ import Navbar from '../../components/Navbar';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { useAuth } from '../../context/AuthContext'; // ADD THIS
+import { useAuth } from '../../context/AuthContext';
 import {
   FiUploadCloud, FiFile, FiX, FiLink,
   FiPlus, FiSend, FiClock, FiCheckCircle,
   FiPaperclip, FiImage, FiFileText
 } from 'react-icons/fi';
+import { API_BASE_URL, buildAssetUrl } from '../../config';
 
-const API = 'http://localhost:5000/api';
+const API = API_BASE_URL;
 
 const getFileUrl = function(filepath) {
-  var filename = filepath.split('\\').pop().split('/').pop();
-  return 'http://localhost:5000/uploads/' + filename;
+  return buildAssetUrl(filepath);
 };
 
 var FileIcon = function(props) {

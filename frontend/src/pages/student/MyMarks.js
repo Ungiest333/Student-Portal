@@ -8,10 +8,11 @@ import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Tooltip, Lege
 import { Bar, Doughnut } from 'react-chartjs-2';
 import { FiAward, FiTrendingUp, FiTarget, FiStar } from 'react-icons/fi';
 import CountUp from 'react-countup';
+import { API_BASE_URL } from '../../config';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend, ArcElement);
 
-const API = 'http://localhost:5000/api';
+const API = API_BASE_URL;
 
 const MyMarks = () => {
   const [marks, setMarks] = useState([]);
