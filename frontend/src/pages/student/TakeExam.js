@@ -43,7 +43,10 @@ const TakeExam = () => {
   };
 
   const hasAttempted = (examId) => {
-    return results.some(r => (r.exam?._id || r.exam) === examId && r.status === 'completed');
+    return results.some(r => {
+      const resultExamId = r.exam?._id || r.exam;
+      return resultExamId === examId && ['completed', 'graded', 'timed-out'].includes(r.status);
+    });
   };
 
   const startExam = async (exam) => {

@@ -32,15 +32,17 @@ const TeacherDashboard = () => {
         axios.get(`${API}/auth/students`),
         axios.get(`${API}/assignments`),
         axios.get(`${API}/exams`),
-        axios.get(`${API}/marks`)
+        axios.get(`${API}/exams/results/teacher`)
       ]);
+
+      const gradedResults = marksRes.data.filter(result => result.status === 'graded');
 
       setStudents(studentsRes.data);
       setStats({
         students: studentsRes.data.length,
         assignments: assignRes.data.length,
         exams: examsRes.data.length,
-        marks: marksRes.data.length
+        marks: gradedResults.length
       });
     } catch (error) {
       console.error(error);
@@ -81,7 +83,7 @@ const TeacherDashboard = () => {
             { icon: <FiUsers />, color: 'purple', label: 'Total Students', value: stats.students },
             { icon: <FiFileText />, color: 'green', label: 'Assignments', value: stats.assignments },
             { icon: <FiBookOpen />, color: 'orange', label: 'Exams', value: stats.exams },
-            { icon: <FiAward />, color: 'pink', label: 'Grades Given', value: stats.marks }
+            { icon: <FiAward />, color: 'pink', label: 'Exam Grades', value: stats.marks }
           ].map((stat, i) => (
             <motion.div
               key={i} className="stat-card"

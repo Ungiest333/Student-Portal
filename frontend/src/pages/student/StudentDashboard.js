@@ -15,12 +15,22 @@ ChartJS.register(ArcElement, CategoryScale, LinearScale, BarElement, Tooltip, Le
 
 const API = API_BASE_URL;
 
+const getGrade = (percentage) => {
+  if (percentage >= 90) return 'A+';
+  if (percentage >= 80) return 'A';
+  if (percentage >= 70) return 'B+';
+  if (percentage >= 60) return 'B';
+  if (percentage >= 50) return 'C';
+  if (percentage >= 40) return 'D';
+  return 'F';
+};
+
 const StudentDashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState({
     assignments: 0, submissions: 0, exams: 0, avgMarks: 0
   });
-  const [marks, setMarks] = useState([]);
+  const [examResults, setExamResults] = useState([]);
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -31,23 +41,25 @@ const StudentDashboard = () => {
 
   const fetchData = async () => {
     try {
-      const [assignRes, subRes, marksRes] = await Promise.all([
+      const [assignRes, subRes, resultsRes] = await Promise.all([
         axios.get(`${API}/assignments`),
         axios.get(`${API}/submissions/my`),
-        axios.get(`${API}/marks/my`)
+        axios.get(`${API}/exams/results/my`)
       ]);
+
+      const gradedResults = resultsRes.data.filter(result => result.status === 'graded');
       
-      const avg = marksRes.data.length > 0
-        ? marksRes.data.reduce((sum, m) => sum + m.percentage, 0) / marksRes.data.length
+      const avg = gradedResults.length > 0
+        ? gradedResults.reduce((sum, result) => sum + (result.percentage || 0), 0) / gradedResults.length
         : 0;
 
       setStats({
         assignments: assignRes.data.length,
         submissions: subRes.data.length,
-        exams: subRes.data.filter(s => s.status === 'graded').length,
+        exams: gradedResults.length,
         avgMarks: Math.round(avg)
       });
-      setMarks(marksRes.data);
+      setExamResults(gradedResults);
       setSubmissions(subRes.data);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -70,10 +82,10 @@ const StudentDashboard = () => {
   };
 
   const barData = {
-    labels: marks.slice(0, 6).map(m => m.subject.substring(0, 10)),
+    labels: examResults.slice(0, 6).map(result => (result.exam?.subject || result.exam?.title || 'Exam').substring(0, 10)),
     datasets: [{
       label: 'Percentage',
-      data: marks.slice(0, 6).map(m => m.percentage),
+      data: examResults.slice(0, 6).map(result => result.percentage || 0),
       backgroundColor: 'rgba(102, 126, 234, 0.6)',
       borderColor: '#667eea',
       borderWidth: 1,
@@ -155,8 +167,8 @@ const StudentDashboard = () => {
           </motion.div>
         </div>
 
-        {/* Recent Marks */}
-        {marks.length > 0 && (
+        {/* Recent Exam Marks */}
+        {examResults.length > 0 && (
           <motion.div
             className="table-container"
             initial={{ opacity: 0, y: 20 }}
@@ -164,7 +176,7 @@ const StudentDashboard = () => {
             transition={{ delay: 0.5 }}
           >
             <div className="table-header">
-              <h3>Recent Marks</h3>
+              <h3>Recent Exam Marks</h3>
             </div>
             <table>
               <thead>
@@ -177,34 +189,37 @@ const StudentDashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {marks.slice(0, 5).map((mark, i) => (
+                {examResults.slice(0, 5).map((result, i) => {
+                  const percentage = result.percentage || 0;
+                  const grade = getGrade(percentage);
+                  return (
                   <motion.tr
-                    key={mark._id}
+                    key={result._id}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5 + i * 0.05 }}
                   >
-                    <td style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{mark.subject}</td>
-                    <td><span className="badge badge-info">{mark.examType}</span></td>
-                    <td>{mark.marksObtained}/{mark.totalMarks}</td>
+                    <td style={{ color: 'var(--text-primary)', fontWeight: 500 }}>{result.exam?.subject || '-'}</td>
+                    <td><span className="badge badge-info">{result.exam?.examType || 'exam'}</span></td>
+                    <td>{result.score}/{result.totalMarks}</td>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span>{mark.percentage?.toFixed(1)}%</span>
+                        <span>{percentage.toFixed(1)}%</span>
                         <div className="progress-bar" style={{ width: '80px' }}>
                           <div
-                            className={`progress-fill ${mark.percentage >= 80 ? 'excellent' : mark.percentage >= 60 ? 'good' : mark.percentage >= 40 ? 'average' : 'poor'}`}
-                            style={{ width: `${mark.percentage}%` }}
+                            className={`progress-fill ${percentage >= 80 ? 'excellent' : percentage >= 60 ? 'good' : percentage >= 40 ? 'average' : 'poor'}`}
+                            style={{ width: `${percentage}%` }}
                           />
                         </div>
                       </div>
                     </td>
                     <td>
-                      <span className={`badge ${mark.grade === 'A+' || mark.grade === 'A' ? 'badge-success' : mark.grade === 'F' ? 'badge-danger' : 'badge-warning'}`}>
-                        {mark.grade}
+                      <span className={`badge ${grade === 'A+' || grade === 'A' ? 'badge-success' : grade === 'F' ? 'badge-danger' : 'badge-warning'}`}>
+                        {grade}
                       </span>
                     </td>
                   </motion.tr>
-                ))}
+                );})}
               </tbody>
             </table>
           </motion.div>

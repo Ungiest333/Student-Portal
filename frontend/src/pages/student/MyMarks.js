@@ -14,8 +14,18 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend, ArcEle
 
 const API = API_BASE_URL;
 
+const getGrade = (percentage) => {
+  if (percentage >= 90) return 'A+';
+  if (percentage >= 80) return 'A';
+  if (percentage >= 70) return 'B+';
+  if (percentage >= 60) return 'B';
+  if (percentage >= 50) return 'C';
+  if (percentage >= 40) return 'D';
+  return 'F';
+};
+
 const MyMarks = () => {
-  const [marks, setMarks] = useState([]);
+  const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -25,8 +35,8 @@ const MyMarks = () => {
 
   const fetchMarks = async () => {
     try {
-      const { data } = await axios.get(`${API}/marks/my`);
-      setMarks(data);
+      const { data } = await axios.get(`${API}/exams/results/my`);
+      setResults(data);
     } catch (error) {
       console.error(error);
     } finally {
@@ -34,26 +44,29 @@ const MyMarks = () => {
     }
   };
 
-  const avgPercentage = marks.length > 0
-    ? marks.reduce((sum, m) => sum + (m.percentage || 0), 0) / marks.length : 0;
+  const gradedResults = results.filter(result => result.status === 'graded');
 
-  const highestMarks = marks.length > 0
-    ? Math.max(...marks.map(m => m.percentage || 0)) : 0;
+  const avgPercentage = gradedResults.length > 0
+    ? gradedResults.reduce((sum, result) => sum + (result.percentage || 0), 0) / gradedResults.length : 0;
 
-  const gradeDistribution = marks.reduce((acc, m) => {
-    acc[m.grade] = (acc[m.grade] || 0) + 1;
+  const highestMarks = gradedResults.length > 0
+    ? Math.max(...gradedResults.map(result => result.percentage || 0)) : 0;
+
+  const gradeDistribution = gradedResults.reduce((acc, result) => {
+    const grade = getGrade(result.percentage || 0);
+    acc[grade] = (acc[grade] || 0) + 1;
     return acc;
   }, {});
 
   const barData = {
-    labels: marks.map(m => `${m.subject.substring(0, 8)}-${m.examType}`),
+    labels: gradedResults.map(result => `${result.exam?.subject?.substring(0, 8) || 'Exam'}-${result.exam?.examType || 'exam'}`),
     datasets: [{
       label: 'Percentage',
-      data: marks.map(m => m.percentage),
-      backgroundColor: marks.map(m =>
-        m.percentage >= 80 ? 'rgba(72, 187, 120, 0.6)' :
-        m.percentage >= 60 ? 'rgba(102, 126, 234, 0.6)' :
-        m.percentage >= 40 ? 'rgba(237, 137, 54, 0.6)' : 'rgba(252, 129, 129, 0.6)'
+      data: gradedResults.map(result => result.percentage),
+      backgroundColor: gradedResults.map(result =>
+        result.percentage >= 80 ? 'rgba(72, 187, 120, 0.6)' :
+        result.percentage >= 60 ? 'rgba(102, 126, 234, 0.6)' :
+        result.percentage >= 40 ? 'rgba(237, 137, 54, 0.6)' : 'rgba(252, 129, 129, 0.6)'
       ),
       borderRadius: 8
     }]
@@ -82,8 +95,8 @@ const MyMarks = () => {
         </motion.div>
 
         <div className="stats-grid">
-          {[
-            { icon: <FiAward />, color: 'purple', label: 'Total Exams', value: marks.length },
+          {[ 
+            { icon: <FiAward />, color: 'purple', label: 'Graded Exams', value: gradedResults.length },
             { icon: <FiTrendingUp />, color: 'green', label: 'Average %', value: Math.round(avgPercentage), suffix: '%' },
             { icon: <FiTarget />, color: 'orange', label: 'Highest %', value: Math.round(highestMarks), suffix: '%' },
             { icon: <FiStar />, color: 'pink', label: 'Best Grade', value: 0, text: Object.keys(gradeDistribution).sort()[0] || 'N/A' }
@@ -141,39 +154,45 @@ const MyMarks = () => {
               </tr>
             </thead>
             <tbody>
-              {marks.map((mark, i) => (
+              {results.map((result, i) => {
+                const graded = result.status === 'graded';
+                const percentage = result.percentage || 0;
+                const grade = graded ? getGrade(percentage) : 'Pending';
+                return (
                 <motion.tr
-                  key={mark._id}
+                  key={result._id}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.5 + i * 0.03 }}
                 >
-                  <td style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{mark.subject}</td>
-                  <td><span className="badge badge-info">{mark.examType}</span></td>
-                  <td>{mark.marksObtained}/{mark.totalMarks}</td>
+                  <td style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{result.exam?.subject || '-'}</td>
+                  <td><span className="badge badge-info">{result.exam?.examType || 'exam'}</span></td>
+                  <td>{graded ? `${result.score}/${result.totalMarks}` : 'Waiting for marks'}</td>
                   <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span>{mark.percentage?.toFixed(1)}%</span>
+                    {graded ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span>{percentage.toFixed(1)}%</span>
                       <div className="progress-bar" style={{ width: '60px' }}>
-                        <div className={`progress-fill ${mark.percentage >= 80 ? 'excellent' : mark.percentage >= 60 ? 'good' : mark.percentage >= 40 ? 'average' : 'poor'}`}
-                          style={{ width: `${mark.percentage}%` }} />
+                        <div className={`progress-fill ${percentage >= 80 ? 'excellent' : percentage >= 60 ? 'good' : percentage >= 40 ? 'average' : 'poor'}`}
+                          style={{ width: `${percentage}%` }} />
                       </div>
                     </div>
+                    ) : '-'}
                   </td>
                   <td>
-                    <span className={`badge ${mark.grade === 'A+' || mark.grade === 'A' ? 'badge-success' : mark.grade === 'F' ? 'badge-danger' : 'badge-warning'}`}>
-                      {mark.grade}
+                    <span className={`badge ${grade === 'A+' || grade === 'A' ? 'badge-success' : grade === 'F' ? 'badge-danger' : grade === 'Pending' ? 'badge-info' : 'badge-warning'}`}>
+                      {grade}
                     </span>
                   </td>
-                  <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{mark.remarks || '-'}</td>
+                  <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{result.feedback || '-'}</td>
                   <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                    {new Date(mark.date).toLocaleDateString()}
+                    {new Date(result.gradedAt || result.completedAt || result.createdAt).toLocaleDateString()}
                   </td>
                 </motion.tr>
-              ))}
+              );})}
             </tbody>
           </table>
-          {marks.length === 0 && (
+          {results.length === 0 && (
             <div className="empty-state">
               <div className="empty-icon">📊</div>
               <h3>No Marks Yet</h3>

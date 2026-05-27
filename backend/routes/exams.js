@@ -334,12 +334,35 @@ router.get('/', protect, async (req, res) => {
 router.get('/results/my', protect, studentOnly, async (req, res) => {
   try {
     const results = await ExamResult.find({ student: req.user._id })
-      .populate('exam', 'title subject totalMarks')
+      .populate('exam', 'title subject totalMarks examType')
       .sort({ createdAt: -1 });
 
     res.json(results);
   } catch (error) {
     res.status(500).json({ message: 'Failed to retrieve exam results' });
+  }
+});
+
+// ============================================
+// GET - All results for current teacher
+// ============================================
+router.get('/results/teacher', protect, teacherOnly, async (req, res) => {
+  try {
+    const exams = await Exam.find({
+      createdBy: req.user._id,
+      isActive: true
+    }).select('_id');
+
+    const results = await ExamResult.find({
+      exam: { $in: exams.map(exam => exam._id) }
+    })
+      .populate('student', 'name email enrollmentNo batch course')
+      .populate('exam', 'title subject totalMarks examType')
+      .sort({ completedAt: -1, createdAt: -1 });
+
+    res.json(results);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to retrieve teacher exam results' });
   }
 });
 
@@ -403,7 +426,7 @@ router.put('/:id/results/:resultId/grade', protect, teacherOnly, async (req, res
       { new: true }
     )
       .populate('student', 'name email enrollmentNo batch course')
-      .populate('exam', 'title subject totalMarks');
+      .populate('exam', 'title subject totalMarks examType questions');
 
     if (!result) {
       return res.status(404).json({ message: 'Exam submission not found' });

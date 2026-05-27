@@ -36,6 +36,9 @@ const uploadFile = async (file, folder = 'student-portal') => {
   }
 
   const timestamp = Math.round(Date.now() / 1000);
+  const resourceType = file.mimetype && file.mimetype.startsWith('image/')
+    ? 'image'
+    : 'raw';
   const params = {
     folder,
     timestamp,
@@ -50,7 +53,7 @@ const uploadFile = async (file, folder = 'student-portal') => {
   formData.append('signature', signParams(params));
 
   const response = await fetch(
-    `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/auto/upload`,
+    `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`,
     {
       method: 'POST',
       body: formData,
