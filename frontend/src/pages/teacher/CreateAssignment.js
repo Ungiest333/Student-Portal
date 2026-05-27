@@ -101,6 +101,7 @@ const CreateAssignment = () => {
                   <option value="Web Development">Web Development</option>
                   <option value="App Development">App Development</option>
                   <option value="Python Programming">Python Programming</option>
+                  <option value="Digital Marketing">Digital Marketing</option>
                   <option value="Data Science">Data Science</option>
                 </select>
               </div>

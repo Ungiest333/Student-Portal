@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
 import {
   FiHome, FiUpload, FiFileText, FiAward, FiUsers,
-  FiPlusCircle, FiEye, FiStar, FiLogOut, FiBookOpen, FiList
+  FiPlusCircle, FiEye, FiLogOut, FiBookOpen, FiList
 } from 'react-icons/fi';
 
 const Sidebar = ({ isOpen, onClose }) => {
@@ -50,7 +50,6 @@ const Sidebar = ({ isOpen, onClose }) => {
     { path: '/teacher/submissions', icon: <FiEye />, label: 'View Submissions' },
     { path: '/teacher/create-exam', icon: <FiBookOpen />, label: 'Create Exam' },
     { path: '/teacher/exams', icon: <FiList />, label: 'View Exams' },
-    { path: '/teacher/grade', icon: <FiStar />, label: 'Grade Students' },
     { path: '/teacher/students', icon: <FiUsers />, label: 'Manage Students' },
   ];
 

@@ -10,6 +10,7 @@ const sharp = require('sharp');
 const Exam = require('../models/Exam');
 const ExamResult = require('../models/ExamResult');
 const { protect, teacherOnly, studentOnly } = require('../middleware/auth');
+const { uploadFile } = require('../utils/cloudUpload');
 
 // Create upload directories
 const uploadDirs = ['uploads/exams', 'uploads/pdfs', 'uploads/questions', 'uploads/exam-submissions'];
@@ -110,6 +111,8 @@ router.post('/', protect, teacherOnly, uploadMiddleware, async (req, res) => {
       examType // 'mcq' or 'document'
     } = req.body;
 
+    const scopedCourse = req.user.course || (course ? course.trim() : '');
+
     // Basic validation
     if (!title || !title.trim()) {
       cleanupFiles(req.files);
@@ -185,7 +188,7 @@ router.post('/', protect, teacherOnly, uploadMiddleware, async (req, res) => {
         startTime: new Date(startTime),
         endTime: new Date(endTime),
         batch: batch?.trim() || '',
-        course: course?.trim() || '',
+        course: scopedCourse,
         examType: 'mcq',
         questions: parsedQuestions.map(q => ({
           question: q.question.trim(),
@@ -233,18 +236,24 @@ router.post('/', protect, teacherOnly, uploadMiddleware, async (req, res) => {
             fs.unlinkSync(imageFile.path);
           }
           
-          examImagePath = `/uploads/exams/${optimizedFilename}`;
+          examImagePath = await uploadFile({
+            ...imageFile,
+            path: optimizedPath,
+            filename: optimizedFilename,
+            originalname: optimizedFilename,
+            mimetype: 'image/jpeg'
+          }, 'student-portal/exams');
           console.log(`Optimized exam image: ${examImagePath}`);
         } catch (err) {
           console.error('Error optimizing exam image:', err);
-          examImagePath = `/uploads/exams/${path.basename(imageFile.filename)}`;
+          examImagePath = await uploadFile(imageFile, 'student-portal/exams');
         }
       }
 
       // Get PDF path
       let pdfPath = null;
       if (req.files?.pdfFile?.[0]) {
-        pdfPath = `/uploads/pdfs/${path.basename(req.files.pdfFile[0].filename)}`;
+        pdfPath = await uploadFile(req.files.pdfFile[0], 'student-portal/exams');
         console.log(`PDF uploaded: ${pdfPath}`);
       }
 
@@ -258,7 +267,7 @@ router.post('/', protect, teacherOnly, uploadMiddleware, async (req, res) => {
         startTime: new Date(startTime),
         endTime: new Date(endTime),
         batch: batch?.trim() || '',
-        course: course?.trim() || '',
+        course: scopedCourse,
         examType: 'document',
         examImage: examImagePath,
         pdfFile: pdfPath,
@@ -298,7 +307,18 @@ router.post('/', protect, teacherOnly, uploadMiddleware, async (req, res) => {
 // ============================================
 router.get('/', protect, async (req, res) => {
   try {
-    const exams = await Exam.find({ isActive: true })
+    const query = { isActive: true };
+
+    if (req.user.role === 'teacher') {
+      query.createdBy = req.user._id;
+    } else {
+      query.$and = [
+        { $or: [{ course: '' }, { course: { $exists: false } }, { course: req.user.course }] },
+        { $or: [{ batch: '' }, { batch: { $exists: false } }, { batch: req.user.batch }] }
+      ];
+    }
+
+    const exams = await Exam.find(query)
       .populate('createdBy', 'name email')
       .sort({ createdAt: -1 });
     
@@ -406,6 +426,9 @@ router.get('/:id', protect, async (req, res) => {
     if (!exam) {
       return res.status(404).json({ message: 'Exam not found' });
     }
+    if (req.user.role === 'student' && !matchesUserScope(exam, req.user)) {
+      return res.status(403).json({ message: 'This exam is not assigned to your course or batch' });
+    }
 
     res.status(200).json(exam);
   } catch (error) {
@@ -422,6 +445,9 @@ router.post('/:id/submit', protect, studentOnly, uploadMiddleware, async (req, r
     if (!exam) {
       return res.status(404).json({ message: 'Exam not found' });
     }
+    if (!matchesUserScope(exam, req.user)) {
+      return res.status(403).json({ message: 'This exam is not assigned to your course or batch' });
+    }
 
     const existingResult = await ExamResult.findOne({
       exam: exam._id,
@@ -433,11 +459,11 @@ router.post('/:id/submit', protect, studentOnly, uploadMiddleware, async (req, r
     }
 
     if (exam.examType === 'document') {
-      const submissionFiles = req.files?.answerFiles ? req.files.answerFiles.map(file => ({
+      const submissionFiles = req.files?.answerFiles ? await Promise.all(req.files.answerFiles.map(async file => ({
         filename: file.originalname,
-        filepath: `/uploads/exam-submissions/${path.basename(file.filename)}`,
+        filepath: await uploadFile(file, 'student-portal/exam-submissions'),
         mimetype: file.mimetype
-      })) : [];
+      }))) : [];
 
       if (!submissionFiles.length && !req.body.answerText?.trim()) {
         return res.status(400).json({ message: 'Please upload your answer file or add an answer note' });
@@ -583,6 +609,12 @@ function deleteFile(filePath) {
   } catch (err) {
     console.error('Error deleting file:', err);
   }
+}
+
+function matchesUserScope(item, user) {
+  const courseMatches = !item.course || item.course === user.course;
+  const batchMatches = !item.batch || item.batch === user.batch;
+  return courseMatches && batchMatches;
 }
 
 // ============================================

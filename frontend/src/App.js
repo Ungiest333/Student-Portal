@@ -15,7 +15,6 @@ import CreateAssignment from './pages/teacher/CreateAssignment';
 import CreateExam from './pages/teacher/CreateExam';
 import ViewExams from './pages/teacher/ViewExams';
 import ViewSubmissions from './pages/teacher/ViewSubmissions';
-import GradeStudent from './pages/teacher/GradeStudent';
 import ManageStudents from './pages/teacher/ManageStudents';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
@@ -68,9 +67,7 @@ function App() {
           <Route path="/teacher/submissions" element={
             <ProtectedRoute role="teacher"><ViewSubmissions /></ProtectedRoute>
           } />
-          <Route path="/teacher/grade" element={
-            <ProtectedRoute role="teacher"><GradeStudent /></ProtectedRoute>
-          } />
+          <Route path="/teacher/grade" element={<Navigate to="/teacher/exams" />} />
           <Route path="/teacher/students" element={
             <ProtectedRoute role="teacher"><ManageStudents /></ProtectedRoute>
           } />

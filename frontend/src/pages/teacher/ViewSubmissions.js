@@ -4,8 +4,7 @@ import Sidebar from '../../components/Sidebar';
 import Navbar from '../../components/Navbar';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import axios from 'axios';
-import toast from 'react-hot-toast';
-import { FiEye, FiCheck, FiFile, FiLink, FiDownload } from 'react-icons/fi';
+import { FiEye, FiFile, FiLink, FiDownload } from 'react-icons/fi';
 import { API_BASE_URL, buildAssetUrl } from '../../config';
 
 const API = API_BASE_URL;
@@ -15,8 +14,6 @@ const ViewSubmissions = () => {
   const [selectedAssignment, setSelectedAssignment] = useState(null);
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [grading, setGrading] = useState(null);
-  const [gradeData, setGradeData] = useState({ marks: '', feedback: '' });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -44,18 +41,6 @@ const ViewSubmissions = () => {
     }
   };
 
-  const handleGrade = async (submissionId) => {
-    try {
-      await axios.put(`${API}/submissions/grade/${submissionId}`, gradeData);
-      toast.success('Graded successfully!');
-      setGrading(null);
-      setGradeData({ marks: '', feedback: '' });
-      if (selectedAssignment) fetchSubmissions(selectedAssignment._id);
-    } catch (error) {
-      toast.error('Failed to grade');
-    }
-  };
-
   if (loading) return <LoadingSpinner />;
 
   return (
@@ -66,7 +51,7 @@ const ViewSubmissions = () => {
 
         <motion.div className="page-header" initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
           <h1>👁️ View Submissions</h1>
-          <p>Review and grade student submissions</p>
+          <p>Review student assignment submissions</p>
         </motion.div>
 
         {!selectedAssignment ? (
@@ -168,38 +153,16 @@ const ViewSubmissions = () => {
                     </p>
                   )}
 
-                  {sub.status === 'graded' ? (
-                    <div style={{
-                      padding: '10px', background: 'rgba(72, 187, 120, 0.1)',
-                      borderRadius: '8px', marginTop: '10px'
-                    }}>
-                      <span style={{ fontWeight: 600, color: 'var(--success)' }}>
-                        Marks: {sub.marks}/{selectedAssignment.totalMarks}
-                      </span>
-                      {sub.feedback && <p style={{ fontSize: '0.8rem', marginTop: '4px', color: 'var(--text-secondary)' }}>{sub.feedback}</p>}
-                    </div>
-                  ) : grading === sub._id ? (
-                    <div style={{ marginTop: '10px' }}>
-                      <input type="number" className="form-input" placeholder="Marks" style={{ marginBottom: '8px', padding: '8px' }}
-                        value={gradeData.marks}
-                        onChange={(e) => setGradeData({ ...gradeData, marks: e.target.value })}
-                        max={selectedAssignment.totalMarks} />
-                      <textarea className="form-textarea" placeholder="Feedback..." style={{ minHeight: '60px', marginBottom: '8px', padding: '8px' }}
-                        value={gradeData.feedback}
-                        onChange={(e) => setGradeData({ ...gradeData, feedback: e.target.value })} />
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <button className="btn btn-success btn-sm" onClick={() => handleGrade(sub._id)}>
-                          <FiCheck /> Grade
-                        </button>
-                        <button className="btn btn-outline btn-sm" onClick={() => setGrading(null)}>Cancel</button>
-                      </div>
-                    </div>
-                  ) : (
-                    <button className="btn btn-primary btn-block btn-sm" style={{ marginTop: '10px' }}
-                      onClick={() => setGrading(sub._id)}>
-                      Grade Submission
-                    </button>
-                  )}
+                  <div style={{
+                    padding: '10px',
+                    background: 'rgba(102,126,234,0.06)',
+                    borderRadius: '8px',
+                    marginTop: '10px',
+                    color: 'var(--text-secondary)',
+                    fontSize: '0.8rem'
+                  }}>
+                    Assignment submissions are review-only. Give marks from the Exam section.
+                  </div>
                 </motion.div>
               ))}
 

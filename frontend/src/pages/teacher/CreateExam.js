@@ -9,6 +9,8 @@ import { API_BASE_URL } from '../../config';
 
 const API = API_BASE_URL;
 
+const toIsoDateTime = (value) => new Date(value).toISOString();
+
 const CreateExam = () => {
   // Mode selection: 'mcq' or 'files' or null
   const [mode, setMode] = useState(null);
@@ -159,8 +161,8 @@ const CreateExam = () => {
       formData.append('description', examData.description);
       formData.append('subject', examData.subject);
       formData.append('duration', examData.duration);
-      formData.append('startTime', examData.startTime);
-      formData.append('endTime', examData.endTime);
+      formData.append('startTime', toIsoDateTime(examData.startTime));
+      formData.append('endTime', toIsoDateTime(examData.endTime));
       formData.append('batch', examData.batch);
       formData.append('course', examData.course);
       formData.append('totalMarks', totalMarks);
@@ -239,8 +241,8 @@ const CreateExam = () => {
       formData.append('description', examData.description);
       formData.append('subject', examData.subject);
       formData.append('duration', examData.duration);
-      formData.append('startTime', examData.startTime);
-      formData.append('endTime', examData.endTime);
+      formData.append('startTime', toIsoDateTime(examData.startTime));
+      formData.append('endTime', toIsoDateTime(examData.endTime));
       formData.append('batch', examData.batch);
       formData.append('course', examData.course);
       formData.append('examType', 'document');
@@ -456,6 +458,7 @@ const CreateExam = () => {
                       <option value="Web Development">Web Development</option>
                       <option value="App Development">App Development</option>
                       <option value="Python Programming">Python Programming</option>
+                      <option value="Digital Marketing">Digital Marketing</option>
                     </select>
                   </div>
                 </div>
@@ -705,6 +708,7 @@ const CreateExam = () => {
                       <option value="Web Development">Web Development</option>
                       <option value="App Development">App Development</option>
                       <option value="Python Programming">Python Programming</option>
+                      <option value="Digital Marketing">Digital Marketing</option>
                     </select>
                   </div>
                 </div>

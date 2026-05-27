@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const { protect } = require('../middleware/auth');
+const { protect, teacherOnly } = require('../middleware/auth');
 const sendWelcomeEmail = require('../utils/sendEmail');
 
 const generateToken = (id) => {
@@ -121,9 +121,14 @@ router.put('/profile', protect, async (req, res) => {
 });
 
 // Get all students (teacher only)
-router.get('/students', protect, async (req, res) => {
+router.get('/students', protect, teacherOnly, async (req, res) => {
   try {
-    const students = await User.find({ role: 'student' }).select('-password');
+    const query = { role: 'student' };
+    if (req.user.course) {
+      query.course = req.user.course;
+    }
+
+    const students = await User.find(query).select('-password');
     res.json(students);
   } catch (error) {
     res.status(500).json({ message: error.message });
