@@ -200,7 +200,7 @@ const Landing = () => {
         color: 'var(--text-muted)',
         fontSize: '0.9rem'
       }}>
-        <p>© 2023 Universal CodeBox. All rights reserved.</p>
+        <p>© 2026 Universal CodeBox. All rights reserved.</p>
         <p style={{ marginTop: '8px' }}>
           <a href="https://universalcodebox.com/" target="_blank" rel="noreferrer"
             style={{ color: 'var(--primary)', textDecoration: 'none' }}>
