@@ -72,9 +72,14 @@ router.get('/:id', protect, async (req, res) => {
 // Update assignment
 router.put('/:id', protect, teacherOnly, async (req, res) => {
   try {
-    const assignment = await Assignment.findByIdAndUpdate(
-      req.params.id, req.body, { new: true }
+    const assignment = await Assignment.findOneAndUpdate(
+      { _id: req.params.id, createdBy: req.user._id, isActive: true },
+      req.body,
+      { new: true }
     );
+    if (!assignment) {
+      return res.status(404).json({ message: 'Assignment not found' });
+    }
     res.json(assignment);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -84,7 +89,14 @@ router.put('/:id', protect, teacherOnly, async (req, res) => {
 // Delete assignment
 router.delete('/:id', protect, teacherOnly, async (req, res) => {
   try {
-    await Assignment.findByIdAndUpdate(req.params.id, { isActive: false });
+    const assignment = await Assignment.findOneAndUpdate(
+      { _id: req.params.id, createdBy: req.user._id, isActive: true },
+      { isActive: false },
+      { new: true }
+    );
+    if (!assignment) {
+      return res.status(404).json({ message: 'Assignment not found' });
+    }
     res.json({ message: 'Assignment deleted' });
   } catch (error) {
     res.status(500).json({ message: error.message });
